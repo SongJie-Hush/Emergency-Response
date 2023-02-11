@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="keywords" content="NCP@SH">
+		<meta name="description" content="本页面仅在2022上海抗疫期间用于地图可视化">
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>个案食物应急派送</title>
+		<style>
+			body {
+				margin: 0;
+				font: 13px/1.5 "Microsoft YaHei", "Helvetica Neue", "Sans-Serif";
+				min-width: auto;
+				min-height: 768px;
+			}
+
+			.my-map {
+				margin: 0 auto;
+				width: auto;
+				height: 768px;
+			}
+
+			.my-map .icon {
+				background: url(http://a.amap.com/lbs-dev-yuntu/static/web/image/tools/creater/marker.png) no-repeat;
+			}
+
+			.my-map .icon-cir {
+				height: 31px;
+				width: 28px;
+			}
+
+			.my-map .icon-cir-red {
+				background-position: -11px -5px;
+			}
+
+			.my-map .icon-cir-blue {
+				background-position: -11px -55px;
+			}
+
+			.my-map .icon-cir-yellow {
+				background-position: -11px -105px;
+			}
+
+			.my-map .icon-cir-green {
+				background-position: -11px -155px;
+			}
+
+			.my-map .icon-cir-gray {
+				background-position: -11px -205px;
+			}
+
+			.amap-container {
+				height: 100%;
+			}
+
+			.myinfowindow {
+				width: 240px;
+				min-height: 50px;
+			}
+
+			.myinfowindow h5 {
+				height: 20px;
+				line-height: 20px;
+				overflow: hidden;
+				font-size: 14px;
+				font-weight: bold;
+				width: 220px;
+				text-overflow: ellipsis;
+				word-break: break-all;
+				white-space: nowrap;
+			}
+
+			.myinfowindow div {
+				margin-top: 10px;
+				min-height: 40px;
+				line-height: 20px;
+				font-size: 13px;
+				color: #6f6f6f;
+			}
+		</style>
+
+		<link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css" />
+		<style>
+			html,
+			body {
+				width: 100%;
+				height: 100%;
+				margin: 0px;
+			}
+
+			.map {
+				height: 100%;
+				width: 100%;
+				float: left;
+			}
+
+			.info-title {
+				font-weight: bolder;
+				color: #000;
+				font-size: 14px;
+				width: 250px;
+				line-height: 26px;
+				padding: 0 0 0 6px;
+			}
+
+			.info-content {
+				width: 250px;
+				padding: 4px;
+				color: #666666;
+				line-height: 23px;
+				font: 12px Helvetica, 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', Arial;
+			}
+
+			.info-content img {
+				float: left;
+				margin: 3px;
+			}
+
+			.amap-info-combo .keyword-input {
+				height: auto;
+			}
+		</style>
+
+	</head>
+	<body>
+		<div id="wrap" class="my-map">
+			<div id="mapContainer"></div>
+		</div>
+		<script src="http://webapi.amap.com/maps?v=1.3&key=e07ffdf58c8e8672037bef0d6cae7d4a"></script>
+		<script>
+			! function() {
+
+				var NameArray = ['陕西省第四人民医院', '陕西省结核病防治院', '西北妇女儿童医院', '西安交通大学第二附属医院', '西安医学院第二附属医院', '西电集团医院', '西京医院',
+					'空军军医大学第二附属医院（唐都医院）', '长安医院', '西安大兴医院', '西安国际医学中心医院', '西安市第九医院', '西安市儿童医院', '西安市第一医院', '西安市第四医院',
+					'西安市第八医院', '陕西省友谊医院', '西安医学高等专科学校附属医院', '西安市红会医院', '西安市中心医院', '西安市精神卫生中心', '西安市胸科医院', '西安市第五医院',
+					'西安北环医院', '西安庆华医院', '西安交通大学第一附属医院东院', '西安中博集贤医院', '西安市高陵区中医医院', '中航工业西安医院', '西安济仁医院', '西安和平中医医院',
+					'西安市鄠邑区中医医院', '西安市碑林区中医医院', '西北有色医院', '西安济民医院', '西安市灞桥区人民医院', '蓝田县人民医院', '西安航天总医院', '通用环球中铁西安医院',
+					'西安惠安医院', '陕西省交通医院', '西安电力中心医院', '周至县人民医院', '西安中医肾病医院', '长安区医院', '陕西航天医院', '西安市东方医院', '蓝田县中医医院',
+					'民航西安医院', '西北工业大学医院', '陕西省森工医院', '西安北车医院', '西安630医院', '雁塔区中医医院', '西安市鄠邑区妇幼保健计划生育服务中心（区妇幼保健院）',
+					'临潼区妇幼保健院', '西安宝石花长庆医院', '西安交通大学第一附属医院', '空军第九八六医院', '兵器工业五二一医院', '西安市第三医院', '西安市中医医院', '西安凤城医院',
+					'西安唐城医院', '西安工会医院', '阎良区人民医院', '西安红会医院阎良院区', '西安雁塔能康中西医结合医院', '周至联合医院', '西安高陵太和综合医院', '西安碑林红缨医院',
+					'五环集团职工医院', '昆仑医院', '北方医院', '西安市华山中心医院', '临潼区人民医院', '通用环球西安西航医院', '周至县中医医院', '西安交通大学医院', '西安秦康老年医院',
+					'陕西省传染病院（西安市第八医院）', '陕西省中医医院', '高陵区医院', '西安高新医院', '西安医专附属医院', '鄠邑区人民医院'
+				];
+
+				var Location = ['陕西省西安市新城区咸宁东路512号', '陕西省西安市长安区太乙宫镇上湾村甲字1号', '陕西省西安市雁塔区雁翔路1616号', '陕西省西安市新城区西五路157号',
+					'陕西省西安市灞桥区纺织城东街167号', '陕西省西安市莲湖区丰登路97号', '陕西省西安市新城区长乐西路127号', '陕西省西安市灞桥区新寺路1号', '陕西省西安市未央区文景路17号',
+					'陕西省西安市莲湖区劳动北路353号', '陕西省西安市长安区西太一级公路东50米', '陕西省西安市碑林区南二环东段151号', '陕西省西安市莲湖区西举院巷69号',
+					'陕西省西安市碑林区南大街粉巷30号', '陕西省西安市新城区解放路21号', '陕西省西安市雁塔区丈八东路2号', '陕西省西安市碑林区友谊西路277号', '陕西省西安市鄠邑区105县道秦渡镇17号',
+					'陕西省西安市碑林区友谊东路555号', '陕西省西安市新城区西五路161号', '陕西省西安市长安区航天大道与包茂高速交汇处东南角(西安市胸科医院向南300米)',
+					'陕西省西安市长安区西柞高速公路与航天大道交叉口往西250米路南', '陕西省西安市莲湖区西关正街112号', '陕西省西安市未央区重光路59号', '陕西省西安市灞桥区田王村田洪正街1号',
+					'陕西省西安市阎良区前进西路与迎宾北路立体交叉口东南200米', '陕西省西安市周至县老大路', '陕西省西安市高陵区泾惠八路', '陕西省西安市莲湖区大庆路636号(近汉城路)',
+					'陕西省西安市鄠邑区东城北路', '陕西省西安市碑林区环城南路东段128号', '陕西省西安市鄠邑区草堂路304号', '陕西省西安市碑林区东羊市街38号',
+					'陕西省西安市碑林区雁塔中路78号西安建筑科技大学西门对面', '陕西省西安市未央区太华北路750号', '陕西省西安市灞桥区灞桥正街28号', '陕西省西安市蓝田县蓝水路东口',
+					'陕西省西安市长安区航天南路41号', '陕西省西安市碑林区南二环东段319', '陕西省西安市鄠邑区惠民路', '陕西省西安市碑林区大学南路276号', '陕西省西安市新城区长缨东路99号',
+					'陕西省西安市周至县云塔南街(工业路)', '陕西省西安市鄠邑区帕堤欧公馆对面', '陕西省西安市长安区郭文苑中路120号', '陕西省西安市灞桥区田洪正街303号', '陕西省西安市新城区新科路28号',
+					'陕西省西安市蓝田县西街002号', '陕西省西安市莲湖区沣镐路2号', '陕西省西安市碑林区友谊西路127号', '陕西省西安市鄠邑区甘亭镇画展街9号', '陕西省西安市未央区建章路南段54号',
+					'陕西省西安市阎良区人民东路90号', '陕西省西安市雁塔区长安南路495号', '陕西省西安市鄠邑区画展路', '陕西省西安市临潼区杏林巷', '陕西省西安市高陵区宝石花长庆医院门诊楼3层皮肤科3诊室',
+					'陕西省西安市雁塔区雁塔西路277号', '陕西省西安市碑林区友谊东路269号', '陕西省西安市雁塔区丈八东路12号', '陕西省西安市未央区凤城三路东段10号西安市第三医院',
+					'陕西省西安市未央区凤城八路69号', '陕西省西安市未央区凤城三路9号', '陕西省西安市未央区太华南路99号', '陕西省西安市长安区东仪路南延伸段甲字1号', '陕西省西安市阎良区康复巷9号',
+					'陕西省西安市阎良区前进西路79号', '陕西省西安市长安区长安南路2号', '陕西省西安市周至县G108(旧)', '陕西省西安市高陵区泾环南路2014号', '陕西省西安市碑林区西何家村20号',
+					'陕西省西安市灞桥区纺东街南段68号', '陕西省西安市新城区万寿北路8号', '陕西省西安市新城区长乐中路170号', '陕西省西安市新城区十七街坊8', '陕西省西安市临潼区西关正街2号',
+					'陕西省西安市未央区育青路', '陕西省西安市周至县周至汽车站西100米', '陕西省西安市雁塔区雁塔西路277号', '陕西省西安市未央区西咸新区沣东新城天台三路B026号',
+					'陕西省西安市雁塔区丈八东路2号', '陕西省西安市莲湖区西华门2号', '陕西省西安市高陵区鹿苑大道与上林二路十字东北角', '陕西省西安市雁塔区高新技术产业开发区团结南路16号',
+					'陕西省西安市鄠邑区秦渡街道17号', '陕西省西安市鄠邑区渼陂路48号'
+				]; //解析地址
+
+				//定点医院
+				var DesigArray = ['否', '否', '否', '是', '是', '否', '否', '是', '否', '是', '否', '是', '否', '否', '否', '否', '是', '否', '否',
+					'是', '否', '否', '否', '否', '否', '否', '否', '否', '否', '否', '否', '否', '否', '否', '否', '否', '是', '否', '是', '否',
+					'否', '否', '是', '否', '否', '是', '否', '否', '否', '否', '否', '否', '否', '否', '否', '否', '否', '是', '否', '是', '否',
+					'否', '否', '否', '否', '是', '否', '否', '否', '否', '否', '否', '否', '否', '否', '是', '是', '否', '否', '否', '是', '否',
+					'否', '是', '是', '是'
+				];
+
+				//发热门诊
+				var FeverArray = ['是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是',
+					'是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是',
+					'是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是',
+					'是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '是', '否', '是',
+					'是', '否', '否', '否'
+				];
+
+				var LatArray = [34.250254, 34.046147, 34.195988, 34.270374, 34.263916, 34.264207, 34.271303, 34.282421,
+					34.321325, 34.288203, 34.142105, 34.236203, 34.26349, 34.254594, 34.260842, 34.196556, 34.241796,
+					34.109074, 34.242431, 34.27124, 34.17308, 34.174992, 34.258646, 34.306233, 34.29172, 34.664336, 34.08611,
+					34.510155, 34.26829, 34.109175, 34.250264, 34.10226, 34.25673, 34.23719, 34.333514, 34.311029, 34.139791,
+					34.166602, 34.23258, 34.057966, 34.245579, 34.278791, 34.154108, 34.10854, 34.158518, 34.30746,
+					34.248865, 34.147012, 34.252174, 34.24659, 34.112219, 34.30053, 34.65848, 34.211575, 34.111791,
+					34.372091, 34.445533, 34.219393, 34.242432, 34.197473, 34.32199, 34.340903, 34.322962, 34.296788,
+					34.170502, 34.662079, 34.666212, 34.176233, 34.1603, 34.462581, 34.235405, 34.25966, 34.27726, 34.268707,
+					34.260342, 34.369277, 34.351811, 34.161776, 34.219393, 34.266613, 34.19656, 34.26424, 34.51864, 34.23012,
+					34.10887, 34.11634
+				];
+
+				var LonArray = [109.017746, 109.015059, 109.01149, 108.951065, 109.06962, 108.896017, 108.987887, 109.064459,
+					108.939758, 108.911779, 108.839716, 108.977854, 108.92706, 108.944871, 108.964181, 108.942322,
+					108.927247, 108.727043, 108.948491, 108.948616, 109.00343, 109.005669, 108.917855, 108.992439, 109.11566,
+					109.215419, 108.39784, 109.074625, 108.873559, 108.636969, 108.964544, 108.60805, 108.96196, 108.96284,
+					108.971354, 109.076501, 109.337769, 108.954521, 108.97056, 108.629744, 108.920852, 109.010169,
+					108.211528, 108.63406, 108.878299, 109.118724, 109.010529, 109.321841, 108.904149, 108.91223, 108.609289,
+					108.84138, 109.24617, 108.947757, 108.612158, 109.199038, 109.000416, 108.936763, 108.967472, 108.923525,
+					108.96207, 108.95843, 108.939534, 108.9723, 108.928031, 109.228419, 109.228021, 108.944366, 108.24636,
+					109.016864, 108.925369, 109.06803, 109.01404, 109.003622, 109.012222, 109.209101, 108.959436, 108.208634,
+					108.936763, 108.821996, 108.9423, 108.9453, 109.08843, 108.88029, 108.72703, 108.60314
+				];
+
+				var infoWindow, map, level = 10,
+					center = {
+						lng: 108.977962,
+						lat: 34.220021
+					};
+				var features = [];
+				console.log(NameArray[0])
+				for (var i = 0; i < LonArray.length; i++) {
+
+					var color = "red";
+
+					if (DesigArray[i] == "是" && FeverArray[i] == "是") {
+						color = "blue";
+					} else if (DesigArray[i] == "是" && FeverArray[i] == "否") {
+						color = "green";
+					} else if (DesigArray[i] == "否" && FeverArray[i] == "是") {
+						color = "red";
+					} else if (DesigArray[i] == "否" && FeverArray[i] == "否") {
+						color = "yellow";
+					}
+
+					newdic = {
+						"icon": "cir",
+						"color": color,
+						"name": NameArray[i],
+						"desc": Location[i],
+						"desig": DesigArray[i],
+						"fever": FeverArray[i],
+						"lnglat": {
+							"lng": LonArray[i],
+							"lat": LatArray[i]
+						},
+						"offset": {
+							"x": -9,
+							"y": -31
+						},
+						"type": "Marker"
+					};
+					features.push(newdic);
+				};
+				//features = [{"icon":"cir","color":"red","name":"未命名标注","desc":"未命名标注描述","lnglat":{"Q":34.28245328916706,"R":108.91012111857538,"lng":108.910121,"lat":34.282453},"offset":{"x":-9,"y":-31},"type":"Marker"}, {"icon":"cir","color":"red","name":"未命名标注","desc":"未命名标注描述","lnglat":{"Q":34.22002105784072,"R":108.97796164378519,"lng":108.977962,"lat":34.220021},"offset":{"x":-9,"y":-31},"type":"Marker"}];
+
+				function loadFeatures() {
+					for (var feature, data, i = 0, len = features.length, j, jl, path; i < len; i++) {
+						data = features[i];
+						switch (data.type) {
+							case "Marker":
+								feature = new AMap.Marker({
+									map: map,
+									position: new AMap.LngLat(data.lnglat.lng, data.lnglat.lat),
+									zIndex: 3,
+									extData: data,
+									offset: new AMap.Pixel(data.offset.x, data.offset.y),
+									title: data.name,
+									content: '<div class="icon icon-' + data.icon + ' icon-' + data.icon + '-' + data
+										.color + '"></div>'
+								});
+								break;
+							case "Polyline":
+								for (j = 0, jl = data.path.length, path = []; j < jl; j++) {
+									path.push(new AMap.LngLat(data.path[j].lng, data.path[j].lat));
+								}
+								feature = new AMap.Polyline({
+									map: map,
+									path: path,
+									extData: data,
+									zIndex: 2,
+									strokeWeight: data.strokeWeight,
+									strokeColor: data.strokeColor,
+									strokeOpacity: data.strokeOpacity
+								});
+								break;
+							case "Polygon":
+								for (j = 0, jl = data.path.length, path = []; j < jl; j++) {
+									path.push(new AMap.LngLat(data.path[j].lng, data.path[j].lat));
+								}
+								feature = new AMap.Polygon({
+									map: map,
+									path: path,
+									extData: data,
+									zIndex: 1,
+									strokeWeight: data.strokeWeight,
+									strokeColor: data.strokeColor,
+									strokeOpacity: data.strokeOpacity,
+									fillColor: data.fillColor,
+									fillOpacity: data.fillOpacity
+								});
+								break;
+							default:
+								feature = null;
+						}
+						if (feature) {
+							AMap.event.addListener(feature, "click", mapFeatureClick);
+						}
+					}
+				}
+
+				function mapFeatureClick(e) {
+					if (!infoWindow) {
+						infoWindow = new AMap.InfoWindow({
+							autoMove: true,
+							isCustom: false
+						});
+					}
+					var extData = e.target.getExtData();
+					var content = '<div class="info-title">' + extData.name + '</div>';
+					content += '<div class="info-content">';
+
+					if (extData.fever == "是") {
+						content += "设有发热门诊";
+						content += '<br>';
+					}
+					else
+					{
+						content += "无发热门诊";
+						content += '<br>';
+					}
+					
+					if (extData.desig == "是") {
+						content += "医疗定点医院";
+						content += '<br>';
+					}
+					else {
+						content += "非医疗定点医院";
+						content += '<br>';
+					}
+
+					content += '<br>';
+					content += "地址：" + extData.desc;
+					content += '<div>';
+					//"<div class='myinfowindow'><h5>" + extData.name + "</h5><br>" + extData.desc +
+					//	"</br><br>" + extData.desc + "</br><div>" + extData.desc + "</div></div>"
+
+					infoWindow.setContent(content);
+					infoWindow.open(map, e.lnglat);
+				}
+
+				map = new AMap.Map("mapContainer", {
+					center: new AMap.LngLat(center.lng, center.lat),
+					level: level,
+					keyboardEnable: true,
+					dragEnable: true,
+					scrollWheel: true,
+					doubleClickZoom: true
+				});
+
+				loadFeatures();
+
+				map.on('complete', function() {
+					map.plugin(["AMap.ToolBar", "AMap.OverView", "AMap.Scale"], function() {
+						map.addControl(new AMap.ToolBar({
+							ruler: true,
+							direction: true,
+							locate: false
+						}));
+						map.addControl(new AMap.OverView({
+							isOpen: true
+						}));
+						map.addControl(new AMap.Scale);
+					});
+				})
+
+			}();
+		</script>
+	</body>
+</html>

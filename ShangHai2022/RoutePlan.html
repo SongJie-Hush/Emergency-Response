@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+		<title>NCP生命支援@上海</title>
+		<style>
+			html,
+			body,
+			#container {
+				width: 100%;
+				height: 100%;
+			}
+
+			#panel {
+				position: fixed;
+				background-color: white;
+				max-height: 90%;
+				overflow-y: auto;
+				top: 10px;
+				right: 10px;
+				width: 280px;
+			}
+
+			#panel .amap-lib-driving {
+				border-radius: 4px;
+				overflow: hidden;
+			}
+		</style>
+		<link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css" />
+		<script src="https://a.amap.com/jsapi_demos/static/demo-center/js/demoutils.js"></script>
+		<script type="text/javascript"
+			src="https://webapi.amap.com/maps?v=2.0&key=9de88a718781910c9a1c81230827d1ce&plugin=AMap.Driving"></script>
+		<script type="text/javascript" src="https://cache.amap.com/lbs/static/addToolbar.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.26.1/axios.js"
+			integrity="sha512-MNW6IbpNuZZ2VH9ngFhzh6cUt8L/0rSVa60F8L22K1H72ro4Ki3M/816eSDLnhICu7vwH/+/yb8oB3BtBLhMsA=="
+			crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	</head>
+	<body>
+		<div id="container"></div>
+		<div id="panel"></div>
+
+		<script>
+			let startp, endp;
+			let awaypArray = [];
+			axios.get('https://3cfbdd06-d6e4-426d-b337-950f1857b456.bspapp.com/routePlan')
+				.then(function(response) {
+					console.log(response);
+					let resList = response.data.data;
+
+					if (resList.length > 0) {
+						let pointsList = resList[0].points;
+						for (let i = 0; i < pointsList.length; i++) {
+							let pointData = pointsList[i];
+							console.log(pointData);
+
+							if (i == 0) {
+								startp = pointsList[i];
+							} else if (i < pointsList.length - 1) {
+								awaypArray.push(pointsList[i]);
+							} else if (i == pointsList.length - 1) {
+								endp = pointsList[i];
+							}
+						}
+					}
+					showPoints(startp, endp, awaypArray);
+				})
+				.catch(function(error) {
+
+					console.log(error);
+
+				});
+		</script>
+
+		<script type="text/javascript">
+			function showPoints(startp, endp, awaypArray) {
+
+				//基本地图加载
+				var map = new AMap.Map("container", {
+					resizeEnable: true,
+					center: [121.427996, 31.375479], //地图中心点
+					zoom: 13 //地图显示的缩放级别
+				});
+				//构造路线导航类
+				var driving = new AMap.Driving({
+					map: map,
+					panel: "panel"
+				});
+
+				//起点、终点、途经点
+				startPoint = new AMap.LngLat(startp.lon, startp.lat);
+				endPoint = new AMap.LngLat(endp.lon, endp.lat);
+				wayPoint = [];
+
+				for (let i = 0; i < awaypArray.length; i++) {
+					let pointData = awaypArray[i];
+					wayPoint.push(new AMap.LngLat(pointData.lon, pointData.lat));
+				}
+
+				// 根据起终点经纬度规划驾车导航路线
+				driving.search(startPoint, endPoint, {
+					waypoints: wayPoint
+				}, function(status, result) {
+					// result 即是对应的驾车导航信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_DrivingResult
+					if (status === 'complete') {
+						log.success('绘制驾车路线完成')
+					} else {
+						log.error('获取驾车数据失败：' + result)
+					}
+				});
+			}
+		</script>
+	</body>
+</html>

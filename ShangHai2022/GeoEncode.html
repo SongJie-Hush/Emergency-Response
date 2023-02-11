@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>批量地理编码</title>
+    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css" />
+    <style>
+        html,
+        body,
+        #container {
+            height: 100%;
+            width: 100%;
+        }
+
+        .btn {
+            width: 10rem;
+            margin-left: 6.8rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container"></div>
+    <div class="input-card" style='width:28rem;'>
+        <h4 style='color:grey'>地址：</h4>
+        <div contenteditable="true" class="input-textarea" id="address">
+            朝阳区阜荣街10号<br />
+            朝阳区广顺南大街13号<br />
+            朝阳区阜通西大街17号
+        </div>
+        <input id="geo" type="button" class="btn" value="地址 -> 经纬度" />
+    </div>
+    <script type="text/javascript">
+        window._AMapSecurityConfig = {
+            securityJsCode:'dbe5260871dfc1871d32c48f2f1f8d7f',
+        }
+    </script>
+    <script src="https://webapi.amap.com/loader.js"></script>
+    <script type="text/javascript"
+        src="https://webapi.amap.com/maps?v=2.0&key=5eb01f348a910d68df8c72bf72f10d7d&plugin=AMap.Geocoder"></script>
+    <script type="text/javascript">
+        var map = new AMap.Map("container", {
+            resizeEnable: true
+        });
+
+        var geocoder = new AMap.Geocoder({
+            city: "010", //城市设为北京，默认：“全国”
+        });
+        var markers = [];
+        function geoCode() {
+            map.remove(markers);
+            markers = [];
+            var addresses = document.getElementById('address').textContent.trim().split('\n');
+            geocoder.getLocation(addresses, function (status, result) {
+                if (status === 'complete' && result.geocodes.length) {
+                    for (var i = 0; i < result.geocodes.length; i += 1) {
+                        var marker = new AMap.Marker({
+                            position: result.geocodes[i].location
+                        });
+                        markers.push(marker);
+                    }
+                    map.add(markers);
+                    map.setFitView(markers);
+                }
+            });
+        }
+        document.getElementById("geo").onclick = geoCode;
+        document.getElementById('address').onkeydown = function (e) {
+            if (e.keyCode === 13) {
+                geoCode();
+                return false;
+            }
+            return true;
+        };
+    </script>
+</body>
+
+</html>
